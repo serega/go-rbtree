@@ -1,0 +1,485 @@
+package rbtree(type T)
+import "once"
+
+type Compare func (i T, j T) int
+
+type Color byte
+
+const RED, BLACK Color = 1, 2
+
+// This function must be called before using RBTree
+func InitRBTree() {
+    once.Do(func() {
+        if NIL == nil {
+            NIL = &Node{nil, nil, nil, 0, BLACK}
+        }
+    })
+}
+
+
+type Node struct {
+    Left, Right, Parent *Node
+    Value T
+    color Color
+}
+
+
+
+func NewNode(val T) *Node {
+    return &Node{NIL, NIL, nil, val, RED}
+}
+
+func NewNodeWithParent(val T, parent *Node) *Node {
+    return &Node{NIL, NIL, parent, val, RED}
+}
+
+
+func (n *Node) Leaf() bool {
+    return n.Left == NIL && n.Right == NIL
+}
+
+// Sentinel node
+var NIL *Node
+
+
+type RBTree struct {
+    root *Node
+    size int
+    comp Compare
+}
+
+
+
+func  NewTree(comp Compare) *RBTree {
+    return &RBTree{ NIL, 0, comp }
+}
+
+
+
+
+func (t *RBTree) Insert(val T) bool {
+    if t.root == NIL {
+        t.root = NewNode(val)
+        t.root.color = BLACK
+        t.size = 1
+        return true
+    } 
+    return t.insert(val, t.root)
+}
+
+func (t *RBTree) Remove(val T) bool {
+    n := t.search(val, t.root)
+    if n == NIL {
+        return false
+    }
+    t.delete(n)
+    return true
+}
+
+func (t *RBTree) Contains(val T) bool {
+    return t.search(val, t.root) != NIL
+}
+
+func (t *RBTree) First() T {
+    return min(t.root).Value
+}
+
+func (t *RBTree) Last() T {
+    return max(t.root).Value
+}
+
+
+func (t *RBTree) Size() int {
+    return t.size
+}
+
+
+func (t *RBTree) Data() <-chan T {
+  c := make(chan T)
+  go func() {
+    inorderTreeWalk(t.root, func (n *Node) { c <- n.Value }); 
+    close(c)
+  }()
+  return c
+}
+
+func (t *RBTree) Foreach(f func(elem T)) {
+    if t.Size() > 0 {
+           inorderTreeWalk(t.root, func(n *Node) { f(n.Value)})
+       }
+    
+}
+func (t *RBTree) For(f func(elem T) bool) {
+    if t.Size() > 0 {
+        m := min(t.root)
+        t.iterate(m, func(n *Node) bool { return f(n.Value)}) 
+    }
+}
+
+func (t *RBTree) Equals(s SortedSet) bool {
+    return t.equals(s.(*RBTree))
+}
+
+
+
+
+func (t *RBTree) insert(val T, parent *Node) bool {
+    var p, x *Node = nil, parent
+    for x != NIL {
+        p = x
+        comp := t.comp(val, p.Value)
+        if comp == 0 {
+            return false
+        }
+        if comp < 0 {
+            x = x.Left
+        } else {
+            x = x.Right
+        }
+    }
+    newNode := NewNodeWithParent(val, p)
+    if t.comp(val, p.Value) < 0 {
+        p.Left = newNode
+    } else {
+        p.Right = newNode
+    }
+    t.insertFixup(newNode)
+    t.size = t.size + 1
+    return true
+}
+
+
+
+
+func  (t *RBTree) delete(p *Node) {
+    t.size = t.size - 1
+    var x *Node;
+    if p.Left != NIL && p.Right != NIL {
+        s := t.Successor(p)
+        p.Value = s.Value
+        p = s   
+    }
+    
+    if p.Left != NIL {
+        x = p.Left
+    } else {
+        x = p.Right
+    }
+        
+    
+    if x != NIL {
+        x.Parent = p.Parent
+        if p.Parent == nil {
+            t.root = x
+        } else if p == p.Parent.Left {
+            p.Parent.Left = x
+        } else {
+            p.Parent.Right = x
+        }
+        unlink(p)
+        if p.color == BLACK {
+            t.deleteFixup(x)
+        }
+    } else if (p.Parent == nil) {
+        t.root = NIL
+    } else {
+        if p.color == BLACK {
+            t.deleteFixup(p)
+        }
+        
+        if p.Parent != nil {
+            if p == p.Parent.Left {
+                p.Parent.Left = NIL
+            } else if (p == p.Parent.Right) {
+                p.Parent.Right = NIL
+            }
+            p.Parent = nil
+        }
+    }
+}
+
+
+
+func unlink(n *Node) {
+    n.Parent = nil
+    n.Left = nil
+    n.Right = nil
+}
+
+
+
+
+func (t *RBTree) search(val T, n *Node) *Node {
+    r := n
+    for r != NIL {
+        comp := t.comp(val, r.Value)
+        if comp == 0 {
+            break
+        }
+        if comp < 0 {
+            r = r.Left
+        } else {
+            r = r.Right
+        }
+    }
+    return r
+}
+
+
+
+func min(node *Node) *Node {
+    if node == NIL {
+        return NIL
+    }
+    for node.Left != NIL {
+        node = node.Left
+    }
+    return node
+}
+
+
+func max(node *Node) *Node {
+    if node == NIL {
+        return NIL
+    }
+    n := node
+    for n.Right != NIL {
+        n = n.Right
+    }
+    return n
+}
+
+
+func (t *RBTree) Successor(n *Node) *Node {
+    if n == NIL || n == nil {
+        return NIL
+    }
+    if n.Right != NIL {
+        return min(n.Right)
+    }
+    p := n.Parent
+    for p != nil && t.comp(p.Value, n.Value) < 0 {
+        p = p.Parent
+    }
+    if p == nil {
+        p = NIL
+    }
+    return p
+}
+
+func (t *RBTree) Predecessor(n *Node) *Node {
+    if n == NIL || n == nil {
+        return NIL
+    }
+    if n.Left != NIL {
+        return max(n.Left)
+    }
+    p := n.Parent
+    for p != nil && t.comp(p.Value, n.Value) > 0 {
+        p = p.Parent
+    }
+    if p == nil {
+        p = NIL
+    }
+    return p
+}
+
+
+func (t *RBTree) computeDepth(n *Node) int {
+    if n == NIL {
+        return 0
+    }
+    leftDepth := 1 + t.computeDepth(n.Left)
+    rightDepth := 1 + t.computeDepth(n.Right)
+    if rightDepth > leftDepth {
+        return rightDepth
+    }
+    return leftDepth
+}
+
+func (t *RBTree) Depth() int {
+    return t.computeDepth(t.root)
+}
+
+
+func inorderTreeWalk(n *Node, f func(*Node)) {
+    if n != NIL {
+        inorderTreeWalk(n.Left, f)
+        f(n)
+        inorderTreeWalk(n.Right, f)
+    }
+}
+
+
+func (t *RBTree) iterate(n *Node, f func(*Node) bool) {
+    for n != NIL {
+        if !f(n) {
+            break
+        }
+        n = t.Successor(n)
+    }
+}
+
+
+
+func (t1 *RBTree) equals(t2 *RBTree) bool {
+    n1 := min(t1.root)
+    n2 := min(t2.root)
+    for ;; {
+        if n1 == NIL && n2 == NIL {
+            return true
+        }            
+        if n1 == NIL || n2 == NIL {
+            return false
+        }
+        if t1.comp(n1.Value, n2.Value) != 0 {
+            return false
+        }
+        n1 = t1.Successor(n1)
+        n2 = t2.Successor(n2)
+    }
+    return true
+}
+
+
+
+// RBTRee operations
+func (t *RBTree) rotateLeft(x *Node) {
+    y := x.Right
+    b := y.Left
+    x.Right = b
+    if b != NIL {
+        b.Parent = x
+    }
+    y.Parent = x.Parent
+    
+    if x.Parent == nil {
+        t.root = y
+    } else if x.Parent.Left == x {
+        x.Parent.Left = y
+    } else {
+        x.Parent.Right = y
+    }
+    y.Left = x
+    x.Parent = y    
+}
+
+
+func (t *RBTree) rotateRight(y *Node) {
+    x := y.Left
+    b := x.Right
+    y.Left = b
+    if b != NIL {
+        b.Parent = y
+    }
+    x.Parent = y.Parent
+    if y.Parent == nil {
+        t.root = x
+    } else if y.Parent.Left == y {
+            y.Parent.Left = x
+    } else {
+            y.Parent.Right = x
+    }
+    
+    
+    x.Right = y
+    y.Parent = x
+}
+
+
+func (t *RBTree) insertFixup(z *Node) {
+    for z != t.root && z.Parent.color == RED {
+        if z.Parent == z.Parent.Parent.Left {
+            y := z.Parent.Parent.Right
+            if y.color == RED {
+                z.Parent.color = BLACK
+                y.color = BLACK
+                z.Parent.Parent.color = RED
+                z = z.Parent.Parent
+            } else {
+                if z == z.Parent.Right {
+                    z = z.Parent
+                    t.rotateLeft(z)
+                }
+                z.Parent.color = BLACK
+                z.Parent.Parent.color = RED
+                t.rotateRight(z.Parent.Parent)
+            }
+        } else {
+            y := z.Parent.Parent.Left
+            if y.color == RED {
+                z.Parent.color = BLACK
+                y.color = BLACK
+                z.Parent.Parent.color = RED
+                z = z.Parent.Parent
+            } else {
+                if z == z.Parent.Left {
+                    z = z.Parent
+                    t.rotateRight(z)
+                }
+                z.Parent.color = BLACK
+                z.Parent.Parent.color = RED
+                t.rotateLeft(z.Parent.Parent)
+            }
+        }
+    }
+    t.root.color = BLACK
+}
+
+
+func (t *RBTree) deleteFixup(x *Node) {
+    for x != t.root && x.color == BLACK {
+        if x == x.Parent.Left {
+            w := x.Parent.Right
+            if w.color == RED {
+                w.color = BLACK
+                x.Parent.color = RED
+                t.rotateLeft(x.Parent)
+                w = x.Parent.Right
+            } 
+            
+            if w.Left.color == BLACK && w.Right.color == BLACK {
+                w.color = RED
+                x = x.Parent
+            } else {
+                if w.Right.color == BLACK {
+                    w.Left.color = BLACK
+                    w.color = RED
+                    t.rotateRight(w)
+                    w = x.Parent.Right
+                }
+                w.color = x.Parent.color
+                x.Parent.color = BLACK
+                w.Right.color = BLACK
+                t.rotateLeft(x.Parent)
+                x = t.root
+            }
+        } else {
+            w := x.Parent.Left
+            if w.color == RED {
+                w.color = BLACK
+                x.Parent.color = RED
+                t.rotateRight(x.Parent)
+                w = x.Parent.Left
+            }
+            
+            if w.Right.color == BLACK && w.Left.color == BLACK {
+                w.color = RED
+                x = x.Parent
+            } else {
+                if (w.Left.color == BLACK) {
+                    w.Right.color = BLACK
+                    w.color = RED
+                    t.rotateLeft(w)
+                    w = x.Parent.Left
+                }
+                w.color = x.Parent.color
+                x.Parent.color = BLACK
+                w.Left.color = BLACK
+                t.rotateRight(x.Parent)
+                x = t.root
+            }
+        }
+    }
+    x.color = BLACK
+}

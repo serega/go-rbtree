@@ -1,0 +1,27 @@
+package rbtree(type T)
+
+
+
+type SortedSet interface {
+  First() T
+  Last() T
+  Insert(T) bool
+  Remove(T) bool
+  Contains(T) bool
+  Equals(SortedSet) bool
+  Size() int
+
+  // Returns a channel that gets passed every element in the set in order, and is then closed.
+  Data() <-chan T
+  
+  // Cals a function for each element in the set in order
+  Foreach(f func(elem T))
+  
+  // Cals a function for each element in the set in order 
+  // until the function returns false or there are no more elements in the set
+  For(f func(elem T) bool)
+}
+
+
+
+
