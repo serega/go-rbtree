@@ -1,5 +1,4 @@
 package rbtree(type T)
-import "once"
 
 type Compare func (i T, j T) int
 
@@ -7,13 +6,10 @@ type Color byte
 
 const RED, BLACK Color = 1, 2
 
-// This function must be called before using RBTree!
-func InitRBTree() {
-    once.Do(func() {
-        if NIL == nil {
-            NIL = &Node{nil, nil, nil, 0, BLACK}
-        }
-    })
+func init() {
+    if NIL == nil {
+        NIL = &Node{NIL, NIL, nil, 0, BLACK}
+    }
 }
 
 
@@ -119,7 +115,6 @@ func (t *RBTree) For(f func(elem T) bool) {
 func (t *RBTree) Equals(s SortedSet) bool {
     return t.equals(s.(*RBTree))
 }
-
 
 
 

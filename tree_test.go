@@ -138,7 +138,6 @@ func VerifyRBTreeProperties(tree *RBTree, t *testing.T) {
 
 
 func TestTree(t *testing.T) {
-    InitRBTree()
     tree := MakeIntTree()
     VerifyRBTreeProperties(tree, t)
     
@@ -175,7 +174,6 @@ func TestTree(t *testing.T) {
 
 
 func TestEquals(t *testing.T) {
-    InitRBTree()
     a := rand.Perm(1000)
     tree1 := NewIntTree()
     tree2 := NewIntTree()
@@ -194,7 +192,6 @@ func TestEquals(t *testing.T) {
 }
 
 func TestRandomTree(t *testing.T) {
-    InitRBTree()
     a := rand.Perm(1000)
     verifyTreeWithRandomData(a, t)
 }
