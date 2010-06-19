@@ -3,7 +3,8 @@ include $(GOROOT)/src/Make.$(GOARCH)
 
 TARG=tree
 GOFILES=\
-	tree.go 
+	tree.go \
+	sortedset.go
 	
 		
 	

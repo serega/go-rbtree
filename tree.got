@@ -7,7 +7,7 @@ type Color byte
 
 const RED, BLACK Color = 1, 2
 
-// This function must be called before using RBTree
+// This function must be called before using RBTree!
 func InitRBTree() {
     once.Do(func() {
         if NIL == nil {

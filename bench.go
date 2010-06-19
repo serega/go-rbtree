@@ -1,6 +1,8 @@
 // Copyright (c) 2010, Jonathan Wills (runningwild@gmail.com)
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+// The benchmark from http://github.com/runningwild/go-btree
 package main
 
 import "rand"
@@ -70,7 +72,7 @@ func Bench(d []int) []float {
 }
 
 func main() {
-  CreateRBTreeNil()  
+  InitRBTree()  
   names := []string {
     "Unique Inserts",
     "Repeated Inserts",

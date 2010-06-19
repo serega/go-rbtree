@@ -1,5 +1,6 @@
+package rbtree
 
-package tree
+
 import "testing"
 import "fmt"
 import "container/vector"
@@ -82,9 +83,9 @@ func verifyTreeWithRandomData(a []int, t *testing.T) {
 
 
 /**
-    From Introduction to Algorithms.
-    RedBlack Tree has the following properties
-   1.  Every Node is either red or black
+    From Introduction to Algorithms, 2/e
+    Red-Black Tree has the following properties
+   1. Every Node is either red or black
    2. The root is black
    3. Every leaf (NIL) is black
    4. If a node is red, then both its children are black
@@ -141,7 +142,7 @@ func TestTree(t *testing.T) {
     tree := MakeIntTree()
     VerifyRBTreeProperties(tree, t)
     
-    tree.Do(func(elem interface{}) { fmt.Printf("%d, ", elem.(int))})
+    tree.Foreach(func(elem interface{}) { fmt.Printf("%d, ", elem.(int))})
     fmt.Printf("\n")
     
     min := tree.First().(int)
@@ -174,7 +175,6 @@ func TestTree(t *testing.T) {
 
 
 func TestEquals(t *testing.T) {
-    fmt.Printf("TestEquals() start\n")
     InitRBTree()
     a := rand.Perm(1000)
     tree1 := NewIntTree()
@@ -191,7 +191,6 @@ func TestEquals(t *testing.T) {
     if  tree1.equals(tree2) {
         t.Errorf("equals returned true")
     }
-    fmt.Printf("TestEquals() end\n")    
 }
 
 func TestRandomTree(t *testing.T) {
