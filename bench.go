@@ -29,7 +29,7 @@ func NewIntSet() SortedSet {
 }
 
 func Bench(d []int) []float {
-  times := make([]float, 6)
+  times := make([]float, 7)
 
   t := NewIntSet()
 
@@ -44,7 +44,7 @@ func Bench(d []int) []float {
     t.Insert(v)
   }
   times[1] = float(time.Nanoseconds() - start) / 1000000000.0
-
+  
   start = time.Nanoseconds()
   for i := 0; i < len(d)/2; i++ {
     t.Remove(d[i])
@@ -68,11 +68,18 @@ func Bench(d []int) []float {
   t.Foreach(func (e int) { sum += e})
   times[5] = float(time.Nanoseconds() - start) / 1000000000.0
 
+  start = time.Nanoseconds()
+  a := make([]*Node, N);
+  for i := 0; i < N; i++ {
+      a[i] = NewNode(1);
+  } 
+  times[6] = float(time.Nanoseconds() - start) / 1000000000.0
+  
+
   return times
 }
 
-func main() {
-  InitRBTree()  
+func main() { 
   names := []string {
     "Unique Inserts",
     "Repeated Inserts",
@@ -80,6 +87,7 @@ func main() {
     "Repeated Deletes",
     "Queries",
     "Iterations",
+    "NewNodes",    
   }
 
   d := rand.Perm(N)
@@ -101,4 +109,5 @@ func main() {
   fmt.Printf("%3.3f:\t%d\t%s\n", total[3], N/2, names[3])
   fmt.Printf("%3.3f:\t%d\t%s\n", total[4], N, names[4])
   fmt.Printf("%3.3f:\t%d\t%s\n", total[5], N, names[5])
+  fmt.Printf("%3.3f:\t%d\t%s\n", total[6], N, names[6])
 }
