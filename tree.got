@@ -21,6 +21,8 @@ type Node struct {
 
 
 
+
+
 func NewNode(val T) *Node {
     return &Node{NIL, NIL, nil, val, RED}
 }
@@ -119,7 +121,7 @@ func (t *RBTree) Equals(s SortedSet) bool {
 
 
 func (t *RBTree) insert(val T, parent *Node) bool {
-    var p, x *Node = nil, parent
+    var p, x *Node = parent, parent
     for x != NIL {
         p = x
         comp := t.comp(val, p.Value)
@@ -132,6 +134,7 @@ func (t *RBTree) insert(val T, parent *Node) bool {
             x = x.Right
         }
     }
+    
     newNode := NewNodeWithParent(val, p)
     if t.comp(val, p.Value) < 0 {
         p.Left = newNode
@@ -143,7 +146,7 @@ func (t *RBTree) insert(val T, parent *Node) bool {
     return true
 }
 
-
+    
 
 
 func  (t *RBTree) delete(p *Node) {

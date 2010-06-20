@@ -24,6 +24,8 @@ func MakeIntTree() *RBTree {
     tree.Insert(7)
     tree.Insert(0)
     tree.Insert(3)
+    tree.Insert(3)
+    tree.Insert(20)
     tree.Insert(20)
     tree.Insert(15)
     tree.Insert(2)
@@ -51,7 +53,9 @@ func verifyElements(tree *RBTree, a []int, t *testing.T) {
 func verifyTreeWithRandomData(a []int, t *testing.T) {
     s := NewIntTree();
     for i,v := range a {
-        s.Insert(v)
+        if !s.Insert(v) {
+            t.Errorf("%d is not inserted", v)
+        }
         VerifyRBTreeProperties(s, t)
         if s.Size() != i + 1 {
              t.Errorf("Expected size %d, actual %d", i + 1, s.Size())   
@@ -59,7 +63,9 @@ func verifyTreeWithRandomData(a []int, t *testing.T) {
         if !s.Contains(v) {
             t.Errorf("Contains %d returned false", v)
         }
-        s.Insert(v)
+        if s.Insert(v) {
+            t.Errorf("%d inserted second time", v)
+        }
         if s.Size() != i + 1 {
             t.Errorf("Expected size %d, actual %d", i + 1, s.Size())   
         }
